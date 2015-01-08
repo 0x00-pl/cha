@@ -506,10 +506,11 @@ static int clsld_attributes_info( \
     {
         new_attribute_info[i].attributes_name_index = io_read_u2(io);
         new_attribute_info[i].attributes_length = io_read_u4(io);
-        if ((new_attribute_info[i].info = (u1 *)malloc( \
-                        sizeof(u1) * new_attribute_info[i].attributes_length)) == NULL)
-        { CHA_ERR_UPDATE_MALLOC(err); ret = CHA_ERR_MALLOC; goto fail; }
-        io_read_bytes(io, new_attribute_info[i].info, new_attribute_info[i].attributes_length);
+/*         if ((new_attribute_info[i].info = (u1 *)malloc( \
+ *                         sizeof(u1) * new_attribute_info[i].attributes_length)) == NULL)
+ *         { CHA_ERR_UPDATE_MALLOC(err); ret = CHA_ERR_MALLOC; goto fail; }
+ *         io_read_bytes(io, new_attribute_info[i].info, new_attribute_info[i].attributes_length);
+*/
     }
 
     CHA_CLSLD_CHECK_IO();

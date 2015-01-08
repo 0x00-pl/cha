@@ -220,11 +220,420 @@ enum
 
 /* Attributes */
 
-typedef struct 
+struct cha_attribute_info_t_decl;
+
+/* Attribute : ConstantValue */
+
+typedef struct
+{
+  u2 constantvalue_index;
+} cha_attribute_info_constantvalue_t;
+cha_attribute_info_constantvalue_t *cha_attribute_info_constantvalue_new(void);
+int cha_attribute_info_constantvalue_destroy(cha_cp_info_method_type_t *attribute_info_constantvalue);
+
+/* Attribute : Code.exception_table */
+
+typedef struct
+{
+  u2 start_pc;
+  u2 end_pc;
+  u2 handler_pc;
+  u2 catch_type;
+} cha_attribute_info_code_exception_table_t;
+cha_attribute_info_code_exception_table_t *cha_attribute_info_code_exception_table_new(void);
+int cha_attribute_info_code_exception_table_destroy(cha_attribute_info_code_exception_table_t *attribute_info_code_exception_table);
+
+/* Attribute : Code */
+
+typedef struct
+{
+  u2 max_stack;
+  u2 max_locals;
+  u4 code_length;
+  u1 *code; //TODO
+  u2 exception_table_length;
+  cha_attribute_info_code_exception_table_t *exception_table;
+  u2 attributes_count;
+  struct cha_attribute_info_t_decl *attributes;
+} cha_attribute_info_code_t;
+cha_attribute_info_code_t *cha_attribute_info_code_new(void);
+int cha_attribute_info_code_destroy(cha_attribute_info_code_t *attribute_info_code);
+
+/* Attribute : StackMapTable.stack_map_frame.verification_type_info */
+typedef struct
+{
+  u1 tag;
+  union
+  {
+    struct{} top_variable_part;
+    struct{} integer_variable_part;
+    struct{} float_variable_part;
+    struct{} long_variable_part;
+    struct{} double_variable_part;
+    struct{} null_variable_part;
+    struct{} uninitializedThis_variable_part;
+    struct{u2 cpool_index;} object_variable_part;
+    struct{u2 offset;} uninitialized_variable_part;
+  } info;
+} cha_attribute_info_stack_map_frame_verification_t;
+cha_attribute_info_stack_map_frame_verification_t *cha_attribute_info_stack_map_frame_verification_new(void);
+int cha_attribute_info_stack_map_frame_verification_destroy(cha_attribute_info_stack_map_frame_verification_t *attribute_info_stack_map_frame_verification);
+
+/* Attribute : StackMapTable.stack_map_frame */
+
+typedef struct
+{
+  u1 frame_type;
+  union
+  {
+    struct{} same_frame_part;
+    struct{
+      cha_attribute_info_stack_map_frame_verification_t stack_1;
+    } same_locals_1_stack_item_frame_part;
+    struct{
+      u2 offset_delta;
+      cha_attribute_info_stack_map_frame_verification_t stack_1;
+    } same_locals_1_stack_item_frame_extended_part;
+    struct{
+      u2 offset_delta;
+    } chop_frame_part;
+    struct{
+      u2 offset_delta;
+    } same_frame_extended_part;
+    struct{
+      u2 offset_delta;
+      cha_attribute_info_stack_map_frame_verification_t *locals;
+    } append_frame_part;
+    struct{
+      u2 offset_delta;
+      u2 number_of_locals;
+      cha_attribute_info_stack_map_frame_verification_t *locals;
+      u2 number_of_stack_items;
+      cha_attribute_info_stack_map_frame_verification_t *stack;
+    } full_frame_part;
+  } info;
+} cha_attribute_info_stack_map_frame_t;
+cha_attribute_info_stack_map_frame_t *cha_attribute_info_stack_map_frame_new(void);
+int cha_attribute_info_stack_map_frame_destroy(cha_attribute_info_stack_map_frame_t *attribute_info_stack_map_frame);
+
+/* Attribute : StackMapTable */
+
+typedef struct
+{
+  u2 number_of_entries;
+  cha_attribute_info_stack_map_frame_t *exception_table;
+} cha_attribute_info_stack_map_table_t;
+cha_attribute_info_stack_map_table_t *cha_attribute_info_stack_map_table_new(void);
+int cha_attribute_info_stack_map_table_destroy(cha_attribute_info_stack_map_table_t *attribute_info_stack_map_table);
+
+/* Attribute : Exceptions */
+
+typedef struct
+{
+  u2 number_of_exceptions;
+  u2 *exception_index_table;
+} cha_attribute_info_exceptions_t;
+cha_attribute_info_exceptions_t *cha_attribute_info_exceptions_new(void);
+int cha_attribute_info_exceptions_destroy(cha_attribute_info_exceptions_t *attribute_info_exceptions);
+
+/* Attribute : InnerClasses.classes */
+
+typedef struct
+{
+  u2 inner_class_info_index;
+  u2 outer_class_info_index;
+  u2 inner_name_index;
+  u2 inner_class_access_flags;
+} cha_attribute_info_inner_classes_classes_t;
+cha_attribute_info_inner_classes_classes_t *cha_attribute_info_inner_classes_classes_new(void);
+int cha_attribute_info_inner_classes_classes_destroy(cha_attribute_info_inner_classes_classes_t *attribute_info_inner_classes_classes);
+
+/* Attribute : InnerClasses */
+
+typedef struct
+{
+  u2 number_of_classes;
+  cha_attribute_info_inner_classes_classes_t *classes;
+} cha_attribute_info_inner_classes_t;
+cha_attribute_info_inner_classes_t *cha_attribute_info_inner_classes_new(void);
+int cha_attribute_info_inner_classes_destroy(cha_attribute_info_inner_classes_t *attribute_info_inner_classes);
+
+/* Attribute : EnclosingMethod */
+
+typedef struct
+{
+  u2 class_index;
+  u2 method_index;
+} cha_attribute_info_enclosing_method_t;
+cha_attribute_info_enclosing_method_t *cha_attribute_info_enclosing_method_new(void);
+int cha_attribute_info_enclosing_method_destroy(cha_attribute_info_enclosing_method_t *attribute_info_enclosing_method);
+
+/* Attribute : Synthetic */
+
+typedef struct
+{} cha_attribute_info_synthetic_t;
+cha_attribute_info_synthetic_t *cha_attribute_info_synthetic_new(void);
+int cha_attribute_info_synthetic_destroy(cha_attribute_info_synthetic_t *attribute_info_synthetic);
+
+/* Attribute : Signature */
+
+typedef struct
+{
+  u2 signature_index;
+} cha_attribute_info_signature_t;
+cha_attribute_info_signature_t *cha_attribute_info_signature_new(void);
+int cha_attribute_info_signature_destroy(cha_attribute_info_signature_t *attribute_info_signature);
+
+
+/* Attribute : SourceFile */
+
+typedef struct
+{
+  u2 sourcefile_index;
+} cha_attribute_info_source_file_t;
+cha_attribute_info_source_file_t *cha_attribute_info_source_file_new(void);
+int cha_attribute_info_source_file_destroy(cha_attribute_info_source_file_t *attribute_info_source_file);
+
+
+/* Attribute : SourceDebugExtension */
+
+typedef struct
+{
+  u1 *debug_extension;
+} cha_attribute_info_source_debug_extension_t;
+cha_attribute_info_source_debug_extension_t *cha_attribute_info_source_debug_extension_new(void);
+int cha_attribute_info_source_debug_extension_destroy(cha_attribute_info_source_debug_extension_t *attribute_info_source_debug_extension);
+
+
+/* Attribute : LineNumberTable.line_number */
+
+typedef struct
+{
+  u2 start_pc;
+  u2 line_number;
+} cha_attribute_info_line_number_t;
+cha_attribute_info_line_number_t *cha_attribute_info_line_number_new(void);
+int cha_attribute_info_line_number_destroy(cha_attribute_info_line_number_t *attribute_info_line_number);
+
+/* Attribute : LineNumberTable */
+
+typedef struct
+{
+  u2 line_number_table_length;
+  cha_attribute_info_line_number_t *line_number_table;
+} cha_attribute_info_line_number_table_t;
+cha_attribute_info_line_number_table_t *cha_attribute_info_line_number_table_new(void);
+int cha_attribute_info_line_number_table_destroy(cha_attribute_info_line_number_table_t *attribute_info_line_number_table);
+
+
+/* Attribute : LocalVariableTable.local_variable */
+
+typedef struct
+{
+  u2 start_pc;
+  u2 length;
+  u2 name_index;
+  u2 descriptor_index;
+  u2 index;
+} cha_attribute_info_local_variable_t;
+cha_attribute_info_local_variable_t *cha_attribute_info_local_variable_new(void);
+int cha_attribute_info_local_variable_destroy(cha_attribute_info_local_variable_t *attribute_info_local_variable);
+
+/* Attribute : LocalVariableTable */
+
+typedef struct
+{
+  u2 local_variable_table_length;
+  cha_attribute_info_local_variable_t *local_variable_table;
+} cha_attribute_info_local_variable_table_t;
+cha_attribute_info_local_variable_table_t *cha_attribute_info_local_variable_table_new(void);
+int cha_attribute_info_local_variable_table_destroy(cha_attribute_info_local_variable_table_t *attribute_info_local_variable_table);
+
+/* Attribute : LocalVariableTypeTable.local_variable_type */
+
+typedef struct
+{
+  u2 start_pc;
+  u2 length;
+  u2 name_index;
+  u2 signature_index;
+  u2 index;
+} cha_attribute_info_local_variable_type_t;
+cha_attribute_info_local_variable_type_t *cha_attribute_info_local_variable_type_new(void);
+int cha_attribute_info_local_variable_type_destroy(cha_attribute_info_local_variable_type_t *attribute_info_local_variable_type);
+
+/* Attribute : LocalVariableTypeTable */
+
+typedef struct
+{
+  u2 local_variable_table_length;
+  cha_attribute_info_local_variable_type_t *local_variable_type_table;
+} cha_attribute_info_local_variable_type_table_t;
+cha_attribute_info_local_variable_type_table_t *cha_attribute_info_local_variable_type_table_new(void);
+int cha_attribute_info_local_variable_type_table_destroy(cha_attribute_info_local_variable_type_table_t *attribute_info_local_variable_type_table);
+
+
+/* Attribute : Deprecated */
+
+typedef struct
+{} cha_attribute_info_deprecated_t;
+cha_attribute_info_deprecated_t *cha_attribute_info_deprecated_new(void);
+int cha_attribute_info_deprecated_destroy(cha_attribute_info_deprecated_t *attribute_info_deprecated);
+
+/* Attribute : Annotation */
+
+struct cha_attribute_info_element_value_t_decl;
+typedef struct
+{
+  u2 type_index;
+  u2 num_element_value_pairs;
+  struct{
+    u2 element_name_index;
+    struct cha_attribute_info_element_value_t_decl *value;
+  } *element_value_pairs;
+} cha_attribute_info_annotation_t;
+cha_attribute_info_annotation_t *cha_attribute_info_annotation_new(void);
+int cha_attribute_info_annotation_destroy(cha_attribute_info_annotation_t *attribute_info_annotation);
+
+/* Attribute : Annotation.element_value */
+
+typedef struct
+{
+  u2 type_name_index;
+  u2 const_name_index;
+} enum_const_value_t;
+    
+typedef struct cha_attribute_info_element_value_t_decl
+{
+  u1 tag;
+  union {
+    u2 const_value_index;
+
+    enum_const_value_t enum_const_value;
+
+    u2 class_info_index;
+
+    cha_attribute_info_annotation_t annotation_value;
+
+    struct {
+      u2 num_values;
+      struct cha_attribute_info_element_value_t_decl *values;
+    } array_value;
+  } value;
+} cha_attribute_info_element_value_t;
+cha_attribute_info_element_value_t *cha_attribute_info_element_value_new(void);
+int cha_attribute_info_element_value_destroy(cha_attribute_info_element_value_t *attribute_info_element_value);
+
+
+/* Attribute : RuntimeVisibleAnnotations */
+
+typedef struct
+{
+  u2 num_annotations;
+  cha_attribute_info_annotation_t *annotations;
+} cha_attribute_info_runtime_visible_annotations_t;
+cha_attribute_info_runtime_visible_annotations_t *cha_attribute_info_runtime_visible_annotations_new(void);
+int cha_attribute_info_runtime_visible_annotations_destroy(cha_attribute_info_runtime_visible_annotations_t *attribute_info_runtime_visible_annotations);
+
+/* Attribute : RuntimeInvisibleAnnotations */
+
+typedef struct
+{
+  u2 num_annotations;
+  cha_attribute_info_annotation_t *annotations;
+} cha_attribute_info_runtime_invisible_annotations_t;
+cha_attribute_info_runtime_invisible_annotations_t *cha_attribute_info_runtime_invisible_annotations_new(void);
+int cha_attribute_info_runtime_invisible_annotations_destroy(cha_attribute_info_runtime_invisible_annotations_t *attribute_info_runtime_invisible_annotations);
+
+/* Attribute : ParameterAnnotations */
+
+typedef struct
+{
+  u2 num_annotations;
+  cha_attribute_info_annotation_t *annotations;
+} cha_attribute_info_parameter_annotation_t;
+cha_attribute_info_parameter_annotation_t *cha_attribute_info_attribute_info_parameter_annotation_new(void);
+int cha_attribute_info_parameter_annotation_destroy(cha_attribute_info_parameter_annotation_t *attribute_info_parameter_annotation);
+
+/* Attribute : RuntimeVisibleParameterAnnotations */
+
+typedef struct
+{
+  u1 num_parameters;
+  cha_attribute_info_parameter_annotation_t *annotations;
+} cha_attribute_info_runtime_visible_parameter_annotations_t;
+cha_attribute_info_runtime_visible_parameter_annotations_t *cha_attribute_info_runtime_visible_parameter_annotations_new(void);
+int cha_attribute_info_runtime_visible_parameter_annotations_destroy(cha_attribute_info_runtime_visible_parameter_annotations_t *attribute_info_runtime_visible_parameter_annotations);
+
+/* Attribute : RuntimeInisibleParameterAnnotations */
+
+typedef struct
+{
+  u1 num_parameters;
+  cha_attribute_info_parameter_annotation_t *annotations;
+} cha_attribute_info_runtime_invisible_parameter_annotations_t;
+cha_attribute_info_runtime_invisible_parameter_annotations_t *cha_attribute_info_runtime_invisible_parameter_annotations_new(void);
+int cha_attribute_info_runtime_invisible_parameter_annotations_destroy(cha_attribute_info_runtime_invisible_parameter_annotations_t *attribute_info_runtime_invisible_parameter_annotations);
+
+
+/* Attribute : AnnotationDefault */
+
+typedef struct
+{
+  cha_attribute_info_element_value_t default_value;
+} cha_attribute_info_annotation_default_t;
+cha_attribute_info_annotation_default_t *cha_attribute_info_annotation_default_new(void);
+int cha_attribute_info_annotation_default_destroy(cha_attribute_info_annotation_default_t *attribute_info_annotation_default);
+
+/* Attribute : BootstrapMethods.bootstrap_method */
+
+typedef struct
+{
+  u2 bootstrap_method_ref;
+  u2 num_bootstrap_arguments;
+  u2 *bootstrap_arguments;
+} cha_attribute_info_bootstrap_method_t;
+cha_attribute_info_bootstrap_method_t *cha_attribute_info_attribute_info_bootstrap_method_new(void);
+int cha_attribute_info_bootstrap_method_destroy(cha_attribute_info_bootstrap_method_t *attribute_info_bootstrap_method);
+
+/* Attribute : BootstrapMethods */
+
+typedef struct
+{
+  u2 num_bootstrap_methods;
+  cha_attribute_info_bootstrap_method_t *bootstrap_methods;
+} cha_attribute_info_bootstrap_methods_t;
+cha_attribute_info_bootstrap_methods_t *cha_attribute_info_bootstrap_methods_new(void);
+int cha_attribute_info_bootstrap_methods_destroy(cha_attribute_info_bootstrap_methods_t *attribute_info_bootstrap_methods);
+
+
+typedef struct cha_attribute_info_t_decl
 {
     u2 attributes_name_index;
     u4 attributes_length;
-    u1 *info;
+    union
+    {
+      cha_attribute_info_constantvalue_t                             cha_attribute_info_constantvalue_part;
+      cha_attribute_info_code_t                                      cha_attribute_info_code_part;
+      cha_attribute_info_stack_map_table_t                           cha_attribute_info_stack_map_table_part;
+      cha_attribute_info_exceptions_t                                cha_attribute_info_exceptions_part;
+      cha_attribute_info_inner_classes_t                             cha_attribute_info_inner_classes_part;
+      cha_attribute_info_enclosing_method_t                          cha_attribute_info_enclosing_method_part;
+      cha_attribute_info_synthetic_t                                 cha_attribute_info_synthetic_part;
+      cha_attribute_info_signature_t                                 cha_attribute_info_signature_part;
+      cha_attribute_info_source_file_t                               cha_attribute_info_source_file_part;
+      cha_attribute_info_source_debug_extension_t                    cha_attribute_info_source_debug_extension_part;
+      cha_attribute_info_line_number_table_t                         cha_attribute_info_line_number_table_part;
+      cha_attribute_info_local_variable_table_t                      cha_attribute_info_local_variable_table_part;
+      cha_attribute_info_local_variable_type_table_t                 cha_attribute_info_local_variable_type_table_part;
+      cha_attribute_info_deprecated_t                                cha_attribute_info_deprecated_part;
+      cha_attribute_info_runtime_visible_annotations_t               cha_attribute_info_runtime_visible_annotations_part;
+      cha_attribute_info_runtime_invisible_annotations_t             cha_attribute_info_runtime_invisible_annotations_part;
+      cha_attribute_info_runtime_visible_parameter_annotations_t     cha_attribute_info_runtime_visible_parameter_annotations_part;
+      cha_attribute_info_runtime_invisible_parameter_annotations_t   cha_attribute_info_runtime_invisible_parameter_annotations_part;
+      cha_attribute_info_annotation_default_t                        cha_attribute_info_annotation_default_part;
+      cha_attribute_info_bootstrap_methods_t                         cha_attribute_info_bootstrap_methods_part;
+    } info;
 } cha_attribute_info_t;
 cha_attribute_info_t *cha_attribute_info_new(size_t size);
 int cha_attribute_info_destroy(cha_attribute_info_t *attribute_info, size_t size);
