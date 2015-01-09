@@ -389,55 +389,57 @@ int cha_cp_info_destroy(cha_cp_info_t *cp_info, size_t size)
 
 
 /* Attrubutes */
-
-cha_attribute_info_t *cha_attribute_info_new(size_t size)
-{
-    cha_attribute_info_t *new_attribute_info = NULL;
-//    size_t i;
-
-    new_attribute_info = (cha_attribute_info_t *)malloc(sizeof(cha_attribute_info_t) * size);
-    if (new_attribute_info == NULL) goto fail;
-//     for (i = 0; i != size; i++) { new_attribute_info[i].info = NULL; }
-
-    goto done;
-fail:
-done:
-    return new_attribute_info;
-}
-
-int cha_attribute_info_destroy(cha_attribute_info_t *attribute_info, size_t size)
-{
-    size_t i;
-    
-    for (i = 0; i != size; i++)
-    {
-//         if (attribute_info[i].info != NULL)
-//         {
-//             free(attribute_info[i].info);
-//         }
-        /*{*/
-        /*case ACC_PUBLIC:*/
-        /*case ACC_PRIVATE:*/
-        /*case ACC_PROTECTED:*/
-        /*case ACC_STATIC:*/
-        /*case ACC_FINAL:*/
-        /*case ACC_SUPER:*/
-        /*case ACC_VOLATILE:*/
-        /*case ACC_BRIDGE:*/
-        /*case ACC_TRANSIENT:*/
-        /*case ACC_INTERFACE:*/
-        /*case ACC_ABSTRACT:*/
-        /*case ACC_STRICT:*/
-        /*case ACC_SYNTHETIC:*/
-        /*case ACC_ANNOTATION:*/
-        /*case ACC_ENUM:*/
-        /*break;*/
-        /*}*/
-    }
-    free(attribute_info);
-
-    return 0;
-}
+/*
+ * function move to "clsfile_attr.c"
+ */ 
+// cha_attribute_info_t *cha_attribute_info_new(size_t size)
+// {
+//     cha_attribute_info_t *new_attribute_info = NULL;
+// //    size_t i;
+// 
+//     new_attribute_info = (cha_attribute_info_t *)malloc(sizeof(cha_attribute_info_t) * size);
+//     if (new_attribute_info == NULL) goto fail;
+// //     for (i = 0; i != size; i++) { new_attribute_info[i].info = NULL; }
+// 
+//     goto done;
+// fail:
+// done:
+//     return new_attribute_info;
+// }
+// 
+// int cha_attribute_info_destroy(cha_attribute_info_t *attribute_info, size_t size)
+// {
+//     size_t i;
+//     
+//     for (i = 0; i != size; i++)
+//     {
+// //         if (attribute_info[i].info != NULL)
+// //         {
+// //             free(attribute_info[i].info);
+// //         }
+//         /*{*/
+//         /*case ACC_PUBLIC:*/
+//         /*case ACC_PRIVATE:*/
+//         /*case ACC_PROTECTED:*/
+//         /*case ACC_STATIC:*/
+//         /*case ACC_FINAL:*/
+//         /*case ACC_SUPER:*/
+//         /*case ACC_VOLATILE:*/
+//         /*case ACC_BRIDGE:*/
+//         /*case ACC_TRANSIENT:*/
+//         /*case ACC_INTERFACE:*/
+//         /*case ACC_ABSTRACT:*/
+//         /*case ACC_STRICT:*/
+//         /*case ACC_SYNTHETIC:*/
+//         /*case ACC_ANNOTATION:*/
+//         /*case ACC_ENUM:*/
+//         /*break;*/
+//         /*}*/
+//     }
+//     free(attribute_info);
+// 
+//     return 0;
+// }
 
 
 /* Fields */

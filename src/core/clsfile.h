@@ -229,7 +229,7 @@ typedef struct
   u2 constantvalue_index;
 } cha_attribute_info_constantvalue_t;
 cha_attribute_info_constantvalue_t *cha_attribute_info_constantvalue_new(void);
-int cha_attribute_info_constantvalue_destroy(cha_cp_info_method_type_t *attribute_info_constantvalue);
+int cha_attribute_info_constantvalue_destroy(cha_attribute_info_constantvalue_t *attribute_info_constantvalue);
 
 /* Attribute : Code.exception_table */
 
@@ -240,8 +240,8 @@ typedef struct
   u2 handler_pc;
   u2 catch_type;
 } cha_attribute_info_code_exception_table_t;
-cha_attribute_info_code_exception_table_t *cha_attribute_info_code_exception_table_new(void);
-int cha_attribute_info_code_exception_table_destroy(cha_attribute_info_code_exception_table_t *attribute_info_code_exception_table);
+cha_attribute_info_code_exception_table_t *cha_attribute_info_code_exception_table_new(size_t size);
+int cha_attribute_info_code_exception_table_destroy(cha_attribute_info_code_exception_table_t *attribute_info_code_exception_table, size_t size);
 
 /* Attribute : Code */
 
@@ -260,6 +260,19 @@ cha_attribute_info_code_t *cha_attribute_info_code_new(void);
 int cha_attribute_info_code_destroy(cha_attribute_info_code_t *attribute_info_code);
 
 /* Attribute : StackMapTable.stack_map_frame.verification_type_info */
+enum{
+  ITEM_Top = 0,
+  ITEM_Integer = 1,
+  ITEM_Float = 2,
+  ITEM_Double = 3,
+  ITEM_Long = 4,
+  ITEM_Null = 5,
+  ITEM_UninitializedThis = 6,
+  ITEM_Object = 7,
+  ITEM_Uninitialized = 8,
+  ITEM_Unknow
+};
+
 typedef struct
 {
   u1 tag;
@@ -276,10 +289,24 @@ typedef struct
     struct{u2 offset;} uninitialized_variable_part;
   } info;
 } cha_attribute_info_stack_map_frame_verification_t;
-cha_attribute_info_stack_map_frame_verification_t *cha_attribute_info_stack_map_frame_verification_new(void);
-int cha_attribute_info_stack_map_frame_verification_destroy(cha_attribute_info_stack_map_frame_verification_t *attribute_info_stack_map_frame_verification);
+cha_attribute_info_stack_map_frame_verification_t *cha_attribute_info_stack_map_frame_verification_new(size_t size);
+int cha_attribute_info_stack_map_frame_verification_destroy(cha_attribute_info_stack_map_frame_verification_t *attribute_info_stack_map_frame_verification, size_t size);
 
 /* Attribute : StackMapTable.stack_map_frame */
+
+enum{
+  FRAME_TYPE_SAME_Low    = 0,
+  FRAME_TYPE_SAME_Height = 63,
+  FRAME_TYPE_SAME_LOCALS_1_STACK_ITEM_Low    = 64,
+  FRAME_TYPE_SAME_LOCALS_1_STACK_ITEM_Height = 127,
+  FRAME_TYPE_SAME_LOCALS_1_STACK_ITEM_EXTENDED = 247,
+  FRAME_TYPE_CHOP_Low    = 248,
+  FRAME_TYPE_CHOP_Height = 250,
+  FRAME_TYPE_SAME_FRAME_EXTENDED = 251,
+  FRAME_TYPE_APPEND_Low    = 252,
+  FRAME_TYPE_APPEND_Height = 254,
+  FRAME_TYPE_FULL_FRAME = 255
+};
 
 typedef struct
 {
@@ -288,11 +315,11 @@ typedef struct
   {
     struct{} same_frame_part;
     struct{
-      cha_attribute_info_stack_map_frame_verification_t stack_1;
+      cha_attribute_info_stack_map_frame_verification_t *stack_1;
     } same_locals_1_stack_item_frame_part;
     struct{
       u2 offset_delta;
-      cha_attribute_info_stack_map_frame_verification_t stack_1;
+      cha_attribute_info_stack_map_frame_verification_t *stack_1;
     } same_locals_1_stack_item_frame_extended_part;
     struct{
       u2 offset_delta;
@@ -313,8 +340,8 @@ typedef struct
     } full_frame_part;
   } info;
 } cha_attribute_info_stack_map_frame_t;
-cha_attribute_info_stack_map_frame_t *cha_attribute_info_stack_map_frame_new(void);
-int cha_attribute_info_stack_map_frame_destroy(cha_attribute_info_stack_map_frame_t *attribute_info_stack_map_frame);
+cha_attribute_info_stack_map_frame_t *cha_attribute_info_stack_map_frame_new(size_t size);
+int cha_attribute_info_stack_map_frame_destroy(cha_attribute_info_stack_map_frame_t *attribute_info_stack_map_frame, size_t size);
 
 /* Attribute : StackMapTable */
 
@@ -344,16 +371,16 @@ typedef struct
   u2 outer_class_info_index;
   u2 inner_name_index;
   u2 inner_class_access_flags;
-} cha_attribute_info_inner_classes_classes_t;
-cha_attribute_info_inner_classes_classes_t *cha_attribute_info_inner_classes_classes_new(void);
-int cha_attribute_info_inner_classes_classes_destroy(cha_attribute_info_inner_classes_classes_t *attribute_info_inner_classes_classes);
+} cha_attribute_info_inner_class_t;
+cha_attribute_info_inner_class_t *cha_attribute_info_inner_class_new(size_t size);
+int cha_attribute_info_inner_class_destroy(cha_attribute_info_inner_class_t *attribute_info_inner_classes_classes, size_t size);
 
 /* Attribute : InnerClasses */
 
 typedef struct
 {
   u2 number_of_classes;
-  cha_attribute_info_inner_classes_classes_t *classes;
+  cha_attribute_info_inner_class_t *classes;
 } cha_attribute_info_inner_classes_t;
 cha_attribute_info_inner_classes_t *cha_attribute_info_inner_classes_new(void);
 int cha_attribute_info_inner_classes_destroy(cha_attribute_info_inner_classes_t *attribute_info_inner_classes);
@@ -371,9 +398,9 @@ int cha_attribute_info_enclosing_method_destroy(cha_attribute_info_enclosing_met
 /* Attribute : Synthetic */
 
 typedef struct
-{} cha_attribute_info_synthetic_t;
-cha_attribute_info_synthetic_t *cha_attribute_info_synthetic_new(void);
-int cha_attribute_info_synthetic_destroy(cha_attribute_info_synthetic_t *attribute_info_synthetic);
+{/* empty */} cha_attribute_info_synthetic_t;
+// cha_attribute_info_synthetic_t *cha_attribute_info_synthetic_new(void);
+// int cha_attribute_info_synthetic_destroy(cha_attribute_info_synthetic_t *attribute_info_synthetic);
 
 /* Attribute : Signature */
 
@@ -412,8 +439,8 @@ typedef struct
   u2 start_pc;
   u2 line_number;
 } cha_attribute_info_line_number_t;
-cha_attribute_info_line_number_t *cha_attribute_info_line_number_new(void);
-int cha_attribute_info_line_number_destroy(cha_attribute_info_line_number_t *attribute_info_line_number);
+cha_attribute_info_line_number_t *cha_attribute_info_line_number_new(size_t size);
+int cha_attribute_info_line_number_destroy(cha_attribute_info_line_number_t *attribute_info_line_number, size_t size);
 
 /* Attribute : LineNumberTable */
 
@@ -436,8 +463,8 @@ typedef struct
   u2 descriptor_index;
   u2 index;
 } cha_attribute_info_local_variable_t;
-cha_attribute_info_local_variable_t *cha_attribute_info_local_variable_new(void);
-int cha_attribute_info_local_variable_destroy(cha_attribute_info_local_variable_t *attribute_info_local_variable);
+cha_attribute_info_local_variable_t *cha_attribute_info_local_variable_new(size_t size);
+int cha_attribute_info_local_variable_destroy(cha_attribute_info_local_variable_t *attribute_info_local_variable, size_t size);
 
 /* Attribute : LocalVariableTable */
 
@@ -459,14 +486,14 @@ typedef struct
   u2 signature_index;
   u2 index;
 } cha_attribute_info_local_variable_type_t;
-cha_attribute_info_local_variable_type_t *cha_attribute_info_local_variable_type_new(void);
-int cha_attribute_info_local_variable_type_destroy(cha_attribute_info_local_variable_type_t *attribute_info_local_variable_type);
+cha_attribute_info_local_variable_type_t *cha_attribute_info_local_variable_type_new(size_t size);
+int cha_attribute_info_local_variable_type_destroy(cha_attribute_info_local_variable_type_t *attribute_info_local_variable_type, size_t size);
 
 /* Attribute : LocalVariableTypeTable */
 
 typedef struct
 {
-  u2 local_variable_table_length;
+  u2 local_variable_type_table_length;
   cha_attribute_info_local_variable_type_t *local_variable_type_table;
 } cha_attribute_info_local_variable_type_table_t;
 cha_attribute_info_local_variable_type_table_t *cha_attribute_info_local_variable_type_table_new(void);
@@ -476,24 +503,32 @@ int cha_attribute_info_local_variable_type_table_destroy(cha_attribute_info_loca
 /* Attribute : Deprecated */
 
 typedef struct
-{} cha_attribute_info_deprecated_t;
-cha_attribute_info_deprecated_t *cha_attribute_info_deprecated_new(void);
-int cha_attribute_info_deprecated_destroy(cha_attribute_info_deprecated_t *attribute_info_deprecated);
+{/* empty */} cha_attribute_info_deprecated_t;
+// cha_attribute_info_deprecated_t *cha_attribute_info_deprecated_new(void);
+// int cha_attribute_info_deprecated_destroy(cha_attribute_info_deprecated_t *attribute_info_deprecated);
 
-/* Attribute : Annotation */
+/* Attribute : Annotation.element_value_pair */
 
 struct cha_attribute_info_element_value_t_decl;
 typedef struct
 {
-  u2 type_index;
-  u2 num_element_value_pairs;
-  struct{
     u2 element_name_index;
     struct cha_attribute_info_element_value_t_decl *value;
-  } *element_value_pairs;
+} cha_attribute_info_element_value_pair_t;
+cha_attribute_info_element_value_pair_t *cha_attribute_info_element_value_pair_new(size_t size);
+int cha_attribute_info_element_value_pair_destroy(cha_attribute_info_element_value_pair_t* attribute_info_element_value_pair, size_t size);
+
+
+/* Attribute : Annotation */
+
+typedef struct
+{
+  u2 type_index;
+  u2 num_element_value_pairs;
+  cha_attribute_info_element_value_pair_t *element_value_pairs;
 } cha_attribute_info_annotation_t;
-cha_attribute_info_annotation_t *cha_attribute_info_annotation_new(void);
-int cha_attribute_info_annotation_destroy(cha_attribute_info_annotation_t *attribute_info_annotation);
+cha_attribute_info_annotation_t *cha_attribute_info_annotation_new(size_t size);
+int cha_attribute_info_annotation_destroy(cha_attribute_info_annotation_t *attribute_info_annotation, size_t size);
 
 /* Attribute : Annotation.element_value */
 
@@ -507,22 +542,22 @@ typedef struct cha_attribute_info_element_value_t_decl
 {
   u1 tag;
   union {
-    u2 const_value_index;
+    u2 const_value_index_part;
 
-    enum_const_value_t enum_const_value;
+    enum_const_value_t enum_const_value_part;
 
-    u2 class_info_index;
+    u2 class_info_index_part;
 
-    cha_attribute_info_annotation_t annotation_value;
+    cha_attribute_info_annotation_t *annotation_value_part;
 
     struct {
       u2 num_values;
       struct cha_attribute_info_element_value_t_decl *values;
-    } array_value;
+    } array_value_part;
   } value;
 } cha_attribute_info_element_value_t;
-cha_attribute_info_element_value_t *cha_attribute_info_element_value_new(void);
-int cha_attribute_info_element_value_destroy(cha_attribute_info_element_value_t *attribute_info_element_value);
+cha_attribute_info_element_value_t *cha_attribute_info_element_value_new(size_t size);
+int cha_attribute_info_element_value_destroy(cha_attribute_info_element_value_t *attribute_info_element_value, size_t size);
 
 
 /* Attribute : RuntimeVisibleAnnotations */
@@ -552,15 +587,15 @@ typedef struct
   u2 num_annotations;
   cha_attribute_info_annotation_t *annotations;
 } cha_attribute_info_parameter_annotation_t;
-cha_attribute_info_parameter_annotation_t *cha_attribute_info_attribute_info_parameter_annotation_new(void);
-int cha_attribute_info_parameter_annotation_destroy(cha_attribute_info_parameter_annotation_t *attribute_info_parameter_annotation);
+cha_attribute_info_parameter_annotation_t *cha_attribute_info_attribute_info_parameter_annotation_new(size_t size);
+int cha_attribute_info_parameter_annotation_destroy(cha_attribute_info_parameter_annotation_t *attribute_info_parameter_annotation, size_t size);
 
 /* Attribute : RuntimeVisibleParameterAnnotations */
 
 typedef struct
 {
   u1 num_parameters;
-  cha_attribute_info_parameter_annotation_t *annotations;
+  cha_attribute_info_parameter_annotation_t *parameter_annotations;
 } cha_attribute_info_runtime_visible_parameter_annotations_t;
 cha_attribute_info_runtime_visible_parameter_annotations_t *cha_attribute_info_runtime_visible_parameter_annotations_new(void);
 int cha_attribute_info_runtime_visible_parameter_annotations_destroy(cha_attribute_info_runtime_visible_parameter_annotations_t *attribute_info_runtime_visible_parameter_annotations);
@@ -570,7 +605,7 @@ int cha_attribute_info_runtime_visible_parameter_annotations_destroy(cha_attribu
 typedef struct
 {
   u1 num_parameters;
-  cha_attribute_info_parameter_annotation_t *annotations;
+  cha_attribute_info_parameter_annotation_t *parameter_annotations;
 } cha_attribute_info_runtime_invisible_parameter_annotations_t;
 cha_attribute_info_runtime_invisible_parameter_annotations_t *cha_attribute_info_runtime_invisible_parameter_annotations_new(void);
 int cha_attribute_info_runtime_invisible_parameter_annotations_destroy(cha_attribute_info_runtime_invisible_parameter_annotations_t *attribute_info_runtime_invisible_parameter_annotations);
@@ -580,7 +615,7 @@ int cha_attribute_info_runtime_invisible_parameter_annotations_destroy(cha_attri
 
 typedef struct
 {
-  cha_attribute_info_element_value_t default_value;
+  cha_attribute_info_element_value_t *default_value;
 } cha_attribute_info_annotation_default_t;
 cha_attribute_info_annotation_default_t *cha_attribute_info_annotation_default_new(void);
 int cha_attribute_info_annotation_default_destroy(cha_attribute_info_annotation_default_t *attribute_info_annotation_default);
@@ -593,8 +628,8 @@ typedef struct
   u2 num_bootstrap_arguments;
   u2 *bootstrap_arguments;
 } cha_attribute_info_bootstrap_method_t;
-cha_attribute_info_bootstrap_method_t *cha_attribute_info_attribute_info_bootstrap_method_new(void);
-int cha_attribute_info_bootstrap_method_destroy(cha_attribute_info_bootstrap_method_t *attribute_info_bootstrap_method);
+cha_attribute_info_bootstrap_method_t *cha_attribute_info_attribute_info_bootstrap_method_new(size_t size);
+int cha_attribute_info_bootstrap_method_destroy(cha_attribute_info_bootstrap_method_t *attribute_info_bootstrap_method, size_t size);
 
 /* Attribute : BootstrapMethods */
 
@@ -606,6 +641,29 @@ typedef struct
 cha_attribute_info_bootstrap_methods_t *cha_attribute_info_bootstrap_methods_new(void);
 int cha_attribute_info_bootstrap_methods_destroy(cha_attribute_info_bootstrap_methods_t *attribute_info_bootstrap_methods);
 
+enum{
+  ATTRIBUTE_TYPE_ConstantValue,
+  ATTRIBUTE_TYPE_Code,
+  ATTRIBUTE_TYPE_StackMapTable,
+  ATTRIBUTE_TYPE_Exceptions,
+  ATTRIBUTE_TYPE_InnerClasses,
+  ATTRIBUTE_TYPE_EnclosingMethod,
+  ATTRIBUTE_TYPE_Synthetic,
+  ATTRIBUTE_TYPE_Signature,
+  ATTRIBUTE_TYPE_SourceFile,
+  ATTRIBUTE_TYPE_SourceDebugExtension,
+  ATTRIBUTE_TYPE_LineNumberTable,
+  ATTRIBUTE_TYPE_LocalVariableTable,
+  ATTRIBUTE_TYPE_LocalVariableTypeTable,
+  ATTRIBUTE_TYPE_Deprecated,
+  ATTRIBUTE_TYPE_RuntimeVisibleAnnotations,
+  ATTRIBUTE_TYPE_RuntimeInvisibleAnnotations,
+  ATTRIBUTE_TYPE_RuntimeVisibleParameterAnnotations,
+  ATTRIBUTE_TYPE_RuntimeInisibleParameterAnnotations,
+  ATTRIBUTE_TYPE_AnnotationDefault,
+  ATTRIBUTE_TYPE_BootstrapMethods,
+  ATTRIBUTE_TYPE_Unknow
+};
 
 typedef struct cha_attribute_info_t_decl
 {
@@ -613,27 +671,29 @@ typedef struct cha_attribute_info_t_decl
     u4 attributes_length;
     union
     {
-      cha_attribute_info_constantvalue_t                             cha_attribute_info_constantvalue_part;
-      cha_attribute_info_code_t                                      cha_attribute_info_code_part;
-      cha_attribute_info_stack_map_table_t                           cha_attribute_info_stack_map_table_part;
-      cha_attribute_info_exceptions_t                                cha_attribute_info_exceptions_part;
-      cha_attribute_info_inner_classes_t                             cha_attribute_info_inner_classes_part;
-      cha_attribute_info_enclosing_method_t                          cha_attribute_info_enclosing_method_part;
-      cha_attribute_info_synthetic_t                                 cha_attribute_info_synthetic_part;
-      cha_attribute_info_signature_t                                 cha_attribute_info_signature_part;
-      cha_attribute_info_source_file_t                               cha_attribute_info_source_file_part;
-      cha_attribute_info_source_debug_extension_t                    cha_attribute_info_source_debug_extension_part;
-      cha_attribute_info_line_number_table_t                         cha_attribute_info_line_number_table_part;
-      cha_attribute_info_local_variable_table_t                      cha_attribute_info_local_variable_table_part;
-      cha_attribute_info_local_variable_type_table_t                 cha_attribute_info_local_variable_type_table_part;
-      cha_attribute_info_deprecated_t                                cha_attribute_info_deprecated_part;
-      cha_attribute_info_runtime_visible_annotations_t               cha_attribute_info_runtime_visible_annotations_part;
-      cha_attribute_info_runtime_invisible_annotations_t             cha_attribute_info_runtime_invisible_annotations_part;
-      cha_attribute_info_runtime_visible_parameter_annotations_t     cha_attribute_info_runtime_visible_parameter_annotations_part;
-      cha_attribute_info_runtime_invisible_parameter_annotations_t   cha_attribute_info_runtime_invisible_parameter_annotations_part;
-      cha_attribute_info_annotation_default_t                        cha_attribute_info_annotation_default_part;
-      cha_attribute_info_bootstrap_methods_t                         cha_attribute_info_bootstrap_methods_part;
+      cha_attribute_info_constantvalue_t                             *constantvalue_part;
+      cha_attribute_info_code_t                                      *code_part;
+      cha_attribute_info_stack_map_table_t                           *stack_map_table_part;
+      cha_attribute_info_exceptions_t                                *exceptions_part;
+      cha_attribute_info_inner_classes_t                             *inner_classes_part;
+      cha_attribute_info_enclosing_method_t                          *enclosing_method_part;
+      cha_attribute_info_synthetic_t                                 *synthetic_part;
+      cha_attribute_info_signature_t                                 *signature_part;
+      cha_attribute_info_source_file_t                               *source_file_part;
+      cha_attribute_info_source_debug_extension_t                    *source_debug_extension_part;
+      cha_attribute_info_line_number_table_t                         *line_number_table_part;
+      cha_attribute_info_local_variable_table_t                      *local_variable_table_part;
+      cha_attribute_info_local_variable_type_table_t                 *local_variable_type_table_part;
+      cha_attribute_info_deprecated_t                                *deprecated_part;
+      cha_attribute_info_runtime_visible_annotations_t               *runtime_visible_annotations_part;
+      cha_attribute_info_runtime_invisible_annotations_t             *runtime_invisible_annotations_part;
+      cha_attribute_info_runtime_visible_parameter_annotations_t     *runtime_visible_parameter_annotations_part;
+      cha_attribute_info_runtime_invisible_parameter_annotations_t   *runtime_invisible_parameter_annotations_part;
+      cha_attribute_info_annotation_default_t                        *annotation_default_part;
+      cha_attribute_info_bootstrap_methods_t                         *bootstrap_methods_part;
+      void                                                           *unknow;
     } info;
+    int attributes_type_;
 } cha_attribute_info_t;
 cha_attribute_info_t *cha_attribute_info_new(size_t size);
 int cha_attribute_info_destroy(cha_attribute_info_t *attribute_info, size_t size);
