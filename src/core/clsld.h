@@ -49,6 +49,12 @@ int clsld_load_from_filename( \
         cha_err_t *err, \
         cha_class_file_t **class_file_out, \
         const char *filename);
+int clsld_attributes_info( \
+        cha_err_t *err, \
+        io_stream_t *io, \
+        cha_cp_info_t *cp_info, u2 cp_count, \
+        cha_attribute_info_t **attribute_info_out, \
+        size_t attributes_info_count);
 
 /* Output the content of class file */
 int clsld_classfile_verbose( \

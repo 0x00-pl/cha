@@ -20,6 +20,7 @@ done:
 
 int cha_attribute_info_constantvalue_destroy(cha_attribute_info_constantvalue_t *attribute_info_constantvalue)
 {
+  if(attribute_info_constantvalue==NULL) {return 0;}
   free(attribute_info_constantvalue);
   return 0;
 }
@@ -48,6 +49,7 @@ done:
 int cha_attribute_info_code_exception_table_destroy(cha_attribute_info_code_exception_table_t *attribute_info_code_exception_table, size_t size)
 {
   (void)size;
+  if(attribute_info_code_exception_table==NULL) {return 0;}
   free(attribute_info_code_exception_table);
   return 0;
 }

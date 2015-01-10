@@ -484,10 +484,12 @@ done:
     return ret;
 }
 
-
+#if 0
+//TODO
 static int clsld_attributes_info( \
         cha_err_t *err, \
         io_stream_t *io, \
+        cha_cp_info_t *cp_info, u2 cp_count, \
         cha_attribute_info_t **attribute_info_out, \
         size_t attributes_info_count)
 {
@@ -506,6 +508,8 @@ static int clsld_attributes_info( \
     {
         new_attribute_info[i].attributes_name_index = io_read_u2(io);
         new_attribute_info[i].attributes_length = io_read_u4(io);
+	//TODO
+	(void)cp_info;
 /*         if ((new_attribute_info[i].info = (u1 *)malloc( \
  *                         sizeof(u1) * new_attribute_info[i].attributes_length)) == NULL)
  *         { CHA_ERR_UPDATE_MALLOC(err); ret = CHA_ERR_MALLOC; goto fail; }
@@ -524,11 +528,13 @@ fail:
 done:
     return ret;
 }
+#endif
 
 
 static int clsld_fields( \
         cha_err_t *err, \
         io_stream_t *io, \
+        cha_cp_info_t *cp_info, u2 cp_count, \
         cha_field_info_t **field_info_out, \
         size_t fields_count)
 {
@@ -549,7 +555,7 @@ static int clsld_fields( \
         new_field_info[i].descriptor_index = io_read_u2(io);
         new_field_info[i].attributes_count = io_read_u2(io);
         if ((ret = clsld_attributes_info( \
-                        err, io, \
+                        err, io, cp_info, cp_count, \
                         &new_field_info[i].attributes, \
                         new_field_info[i].attributes_count)) != 0)
         { goto fail; }
@@ -571,6 +577,7 @@ done:
 static int clsld_methods( \
         cha_err_t *err, \
         io_stream_t *io, \
+        cha_cp_info_t *cp_info, u2 cp_count, \
         cha_method_info_t **method_info_out, \
         size_t methods_count)
 {
@@ -591,7 +598,7 @@ static int clsld_methods( \
         new_method_info[i].descriptor_index = io_read_u2(io);
         new_method_info[i].attributes_count = io_read_u2(io);
         if ((ret = clsld_attributes_info( \
-                        err, io, \
+                        err, io, cp_info, cp_count, \
                         &new_method_info[i].attributes, \
                         new_method_info[i].attributes_count)) != 0)
         { goto fail; }
@@ -672,6 +679,8 @@ int clsld_load_from_io_stream( \
     new_class_file->fields_count = io_read_u2(io);
     CHA_CLSLD_CHECK_IO();
     if ((ret = clsld_fields(err, io, \
+		    new_class_file->constant_pool, \
+		    new_class_file->constant_pool_count, \
                     &new_class_file->fields, \
                     new_class_file->fields_count)) != 0)
     { goto fail; }
@@ -680,6 +689,8 @@ int clsld_load_from_io_stream( \
     new_class_file->methods_count = io_read_u2(io);
     CHA_CLSLD_CHECK_IO();
     if ((ret = clsld_methods(err, io, \
+		    new_class_file->constant_pool, \
+		    new_class_file->constant_pool_count, \
                     &new_class_file->methods, \
                     new_class_file->methods_count)) != 0)
     { goto fail; }
@@ -688,6 +699,8 @@ int clsld_load_from_io_stream( \
     new_class_file->attributes_count = io_read_u2(io);
     CHA_CLSLD_CHECK_IO();
     if ((ret = clsld_attributes_info(err, io, \
+		    new_class_file->constant_pool, \
+		    new_class_file->constant_pool_count, \
                     &new_class_file->attributes, \
                     new_class_file->attributes_count)) != 0)
     { goto fail; }
@@ -963,14 +976,15 @@ static int clsld_classfile_print_utf8(cha_class_file_t *class_file, u2 idx)
     return 0;
 }
 
-static int clsld_classfile_match_utf8(cha_class_file_t *class_file, u2 idx, \
+static int clsld_classfile_match_utf8(cha_cp_info_t *cp_info, u2 cp_count, u2 idx, \
         const char *str, const size_t len)
 {
-    if ((len == class_file->constant_pool[idx - 1].info.utf8_part->length) && \
-            (strncmp((const char *)class_file->constant_pool[idx - 1].info.utf8_part->bytes, str, len) == 0))
-    { return 1; }
-    else 
-    { return 0; }
+  if(idx >= cp_count) {return 0;}
+  if ((len == cp_info[idx - 1].info.utf8_part->length) && \
+	  (strncmp((const char *)cp_info[idx - 1].info.utf8_part->bytes, str, len) == 0))
+  { return 1; }
+  else 
+  { return 0; }
 }
 
 static int clsld_classfile_verbose_attributes(cha_class_file_t *class_file, \
@@ -983,7 +997,10 @@ static int clsld_classfile_verbose_attributes(cha_class_file_t *class_file, \
     for (i = 0; i != attributes_count; i++)
     {
         idx = attributes[i].attributes_name_index;
-        if (clsld_classfile_match_utf8(class_file, idx, "Code", 4))
+        if (clsld_classfile_match_utf8(
+	  class_file->constant_pool, 
+	  class_file->constant_pool_count, 
+	  idx, "Code", 4))
         {
             printf("    Code:\n");
         }
