@@ -537,25 +537,25 @@ typedef struct
   u2 type_name_index;
   u2 const_name_index;
 } enum_const_value_t;
-    
-typedef struct cha_attribute_info_element_value_t_decl
+
+typedef struct 
+{
+  u2 num_values;
+  struct cha_attribute_info_element_value_t_decl *values;
+} array_value_t;
+
+struct cha_attribute_info_element_value_t_decl
 {
   u1 tag;
   union {
     u2 const_value_index_part;
-
     enum_const_value_t enum_const_value_part;
-
     u2 class_info_index_part;
-
     cha_attribute_info_annotation_t *annotation_value_part;
-
-    struct {
-      u2 num_values;
-      struct cha_attribute_info_element_value_t_decl *values;
-    } array_value_part;
+    array_value_t array_value_part;
   } value;
-} cha_attribute_info_element_value_t;
+}; 
+typedef struct cha_attribute_info_element_value_t_decl cha_attribute_info_element_value_t;
 cha_attribute_info_element_value_t *cha_attribute_info_element_value_new(size_t size);
 int cha_attribute_info_element_value_destroy(cha_attribute_info_element_value_t *attribute_info_element_value, size_t size);
 
@@ -587,14 +587,14 @@ typedef struct
   u2 num_annotations;
   cha_attribute_info_annotation_t *annotations;
 } cha_attribute_info_parameter_annotation_t;
-cha_attribute_info_parameter_annotation_t *cha_attribute_info_attribute_info_parameter_annotation_new(size_t size);
+cha_attribute_info_parameter_annotation_t *cha_attribute_info_parameter_annotation_new(size_t size);
 int cha_attribute_info_parameter_annotation_destroy(cha_attribute_info_parameter_annotation_t *attribute_info_parameter_annotation, size_t size);
 
 /* Attribute : RuntimeVisibleParameterAnnotations */
 
 typedef struct
 {
-  u1 num_parameters;
+  u2 num_parameters;
   cha_attribute_info_parameter_annotation_t *parameter_annotations;
 } cha_attribute_info_runtime_visible_parameter_annotations_t;
 cha_attribute_info_runtime_visible_parameter_annotations_t *cha_attribute_info_runtime_visible_parameter_annotations_new(void);
@@ -604,7 +604,7 @@ int cha_attribute_info_runtime_visible_parameter_annotations_destroy(cha_attribu
 
 typedef struct
 {
-  u1 num_parameters;
+  u2 num_parameters;
   cha_attribute_info_parameter_annotation_t *parameter_annotations;
 } cha_attribute_info_runtime_invisible_parameter_annotations_t;
 cha_attribute_info_runtime_invisible_parameter_annotations_t *cha_attribute_info_runtime_invisible_parameter_annotations_new(void);
@@ -628,7 +628,7 @@ typedef struct
   u2 num_bootstrap_arguments;
   u2 *bootstrap_arguments;
 } cha_attribute_info_bootstrap_method_t;
-cha_attribute_info_bootstrap_method_t *cha_attribute_info_attribute_info_bootstrap_method_new(size_t size);
+cha_attribute_info_bootstrap_method_t *cha_attribute_info_bootstrap_method_new(size_t size);
 int cha_attribute_info_bootstrap_method_destroy(cha_attribute_info_bootstrap_method_t *attribute_info_bootstrap_method, size_t size);
 
 /* Attribute : BootstrapMethods */

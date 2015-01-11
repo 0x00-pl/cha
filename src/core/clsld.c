@@ -484,53 +484,6 @@ done:
     return ret;
 }
 
-#if 0
-//TODO
-static int clsld_attributes_info( \
-        cha_err_t *err, \
-        io_stream_t *io, \
-        cha_cp_info_t *cp_info, u2 cp_count, \
-        cha_attribute_info_t **attribute_info_out, \
-        size_t attributes_info_count)
-{
-    int ret = 0;
-    cha_attribute_info_t *new_attribute_info = NULL;
-    size_t i;
-
-    if ((new_attribute_info = cha_attribute_info_new(attributes_info_count)) == NULL)
-    {
-        CHA_ERR_UPDATE_MALLOC(err);
-        ret = CHA_ERR_MALLOC;
-        goto fail;
-    }
-
-    for (i = 0; i != attributes_info_count; i++)
-    {
-        new_attribute_info[i].attributes_name_index = io_read_u2(io);
-        new_attribute_info[i].attributes_length = io_read_u4(io);
-	//TODO
-	(void)cp_info;
-/*         if ((new_attribute_info[i].info = (u1 *)malloc( \
- *                         sizeof(u1) * new_attribute_info[i].attributes_length)) == NULL)
- *         { CHA_ERR_UPDATE_MALLOC(err); ret = CHA_ERR_MALLOC; goto fail; }
- *         io_read_bytes(io, new_attribute_info[i].info, new_attribute_info[i].attributes_length);
-*/
-    }
-
-    CHA_CLSLD_CHECK_IO();
-
-    *attribute_info_out = new_attribute_info;
-
-    goto done;
-fail:
-    if (new_attribute_info != NULL)
-    { cha_attribute_info_destroy(new_attribute_info, attributes_info_count); }
-done:
-    return ret;
-}
-#endif
-
-
 static int clsld_fields( \
         cha_err_t *err, \
         io_stream_t *io, \
@@ -976,7 +929,7 @@ static int clsld_classfile_print_utf8(cha_class_file_t *class_file, u2 idx)
     return 0;
 }
 
-static int clsld_classfile_match_utf8(cha_cp_info_t *cp_info, u2 cp_count, u2 idx, \
+int clsld_classfile_match_utf8(cha_cp_info_t *cp_info, u2 cp_count, u2 idx, \
         const char *str, const size_t len)
 {
   if(idx >= cp_count) {return 0;}
@@ -997,16 +950,7 @@ static int clsld_classfile_verbose_attributes(cha_class_file_t *class_file, \
     for (i = 0; i != attributes_count; i++)
     {
         idx = attributes[i].attributes_name_index;
-        if (clsld_classfile_match_utf8(
-	  class_file->constant_pool, 
-	  class_file->constant_pool_count, 
-	  idx, "Code", 4))
-        {
-            printf("    Code:\n");
-        }
-        else
-        {
-        }
+        printf("    %d#%d: %s\n", (int)i, (int)idx, (char*)class_file->constant_pool[idx-1].info.utf8_part->bytes);
     }
 
     return 0;
