@@ -348,7 +348,7 @@ int cha_attribute_info_stack_map_frame_destroy(cha_attribute_info_stack_map_fram
 typedef struct
 {
   u2 number_of_entries;
-  cha_attribute_info_stack_map_frame_t *exception_table;
+  cha_attribute_info_stack_map_frame_t *entries;
 } cha_attribute_info_stack_map_table_t;
 cha_attribute_info_stack_map_table_t *cha_attribute_info_stack_map_table_new(void);
 int cha_attribute_info_stack_map_table_destroy(cha_attribute_info_stack_map_table_t *attribute_info_stack_map_table);

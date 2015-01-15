@@ -65,5 +65,7 @@ int clsld_attributes_info( \
         cha_attribute_info_t **attribute_info_out, \
         size_t attributes_info_count);
 
+int clsld_classfile_verbose_attribute_info(size_t indentation, cha_class_file_t* class_file, cha_attribute_info_t* attribute_info);
+
 #endif
 

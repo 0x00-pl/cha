@@ -942,15 +942,20 @@ int clsld_classfile_match_utf8(cha_cp_info_t *cp_info, u2 cp_count, u2 idx, \
 
 static int clsld_classfile_verbose_attributes(cha_class_file_t *class_file, \
         u2 attributes_count, \
-        cha_attribute_info_t *attributes)
+        cha_attribute_info_t *attributes,
+        size_t indentation)
 {
     size_t i;
     u2 idx;
+    (void)idx;
 
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("Attributes[%u]:\n", attributes_count);
     for (i = 0; i != attributes_count; i++)
     {
         idx = attributes[i].attributes_name_index;
-        printf("    %d#%d: %s\n", (int)i, (int)idx, (char*)class_file->constant_pool[idx-1].info.utf8_part->bytes);
+//         printf("    %d#%d: %s\n", (int)i, (int)idx, (char*)class_file->constant_pool[idx-1].info.utf8_part->bytes);
+        clsld_classfile_verbose_attribute_info(indentation+2, class_file, &attributes[i]);
     }
 
     return 0;
@@ -983,7 +988,8 @@ static int clsld_classfile_verbose_body(cha_class_file_t *class_file)
         /* Attributes */
         clsld_classfile_verbose_attributes(class_file, \
                 class_file->methods[i].attributes_count, 
-                class_file->methods[i].attributes);
+                class_file->methods[i].attributes,
+                4);
 
         printf("\n");
     }
@@ -1030,6 +1036,7 @@ int clsld_classfile_verbose( \
     clsld_classfile_verbose_acc_flags(class_file->access_flags);
     clsld_classfile_verbose_cp(class_file->constant_pool_count, class_file->constant_pool);
     clsld_classfile_verbose_body(class_file);
+    clsld_classfile_verbose_attributes(class_file, class_file->attributes_count, class_file->attributes, 2);
 
     return 0;
 }

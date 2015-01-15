@@ -197,7 +197,7 @@ cha_attribute_info_stack_map_table_t *cha_attribute_info_stack_map_table_new(voi
   new_attribute_info_stack_map_table = (cha_attribute_info_stack_map_table_t*)malloc(sizeof(cha_attribute_info_stack_map_table_t));
   if(new_attribute_info_stack_map_table == NULL) {goto fail;}
   new_attribute_info_stack_map_table->number_of_entries = 0;
-  new_attribute_info_stack_map_table->exception_table = NULL;
+  new_attribute_info_stack_map_table->entries = NULL;
 
   goto done;
 fail:
@@ -209,7 +209,7 @@ int cha_attribute_info_stack_map_table_destroy(cha_attribute_info_stack_map_tabl
 {
   if(attribute_info_stack_map_table == NULL) {return 0;}
   cha_attribute_info_stack_map_frame_destroy(
-    attribute_info_stack_map_table->exception_table,
+    attribute_info_stack_map_table->entries,
     attribute_info_stack_map_table->number_of_entries
   );
   return 0;

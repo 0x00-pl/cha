@@ -8,6 +8,7 @@
 #include "clsfile.h"
 #include "clsld.h"
 #include "err.h"
+#include "instructions.h"
 
 #define CHA_ERR_UPDATE_CORRUPTED_CLASS(err) \
     cha_err_update(err, CHA_ERR_CLSLD, "Error: Corrupted class file");
@@ -319,7 +320,7 @@ static int clsld_attribute_info_stack_map_table( \
     CHA_CLSLD_READ_CHECK_u2(goto fail, new_attribute_info_stack_map_table->number_of_entries, io);
     if((ret = clsld_attribute_info_stack_map_frame(
       err, io,
-      &new_attribute_info_stack_map_table->exception_table,
+      &new_attribute_info_stack_map_table->entries,
       new_attribute_info_stack_map_table->number_of_entries
     )) != 0)
     {goto fail;}
@@ -1300,6 +1301,462 @@ done:
 }
 #undef CLSLD_ATTRIBUTES_INFO_IN_CASE
 
-static int clsld_classfile_verbose_attribute(cha_attribute_info_t *cha_attribute_info){
+static int clsld_classfile_verbose_cp_info(size_t indentation, cha_cp_info_t *constant_pool_info)
+{
+  size_t i;
+  
+  for(i=0; i<indentation; i++) {printf(" ");}
+  
+  switch (constant_pool_info->tag)
+  {
+    case CONSTANT_Unknown:
+        printf("Unknown\n");
+        break;
+    case CONSTANT_Class:
+        printf("Class              #%u\n", \
+                constant_pool_info->info.class_part->name_index);
+        break;
+    case CONSTANT_Fieldref:
+        printf("Fieldref           #%u.#%u\n", \
+                constant_pool_info->info.ref_part->class_index, \
+                constant_pool_info->info.ref_part->name_and_type_index);
+        break;
+    case CONSTANT_Methodref:
+        printf("Methodref          #%u.#%u\n", \
+                constant_pool_info->info.ref_part->class_index, \
+                constant_pool_info->info.ref_part->name_and_type_index);
+        break;
+    case CONSTANT_InterfaceMethodref:
+        printf("InterfaceMethodref #%u.#%u\n", \
+                constant_pool_info->info.ref_part->class_index, \
+                constant_pool_info->info.ref_part->name_and_type_index);
+        break;
+    case CONSTANT_String:
+        printf("String             #%u\n", \
+                constant_pool_info->info.string_part->index);
+        break;
+    case CONSTANT_Integer:
+        printf("Integer            #%u\n", \
+                constant_pool_info->info.integer_part->bytes);
+        break;
+    case CONSTANT_Float:
+        printf("Float              #%u\n", \
+                constant_pool_info->info.float_part->bytes);
+        break;
+    case CONSTANT_Long:
+        printf("Long               #%u.#%u\n", \
+                constant_pool_info->info.long_part->high_bytes, \
+                constant_pool_info->info.long_part->low_bytes);
+        break;
+    case CONSTANT_Double:
+        printf("Double             #%u.#%u\n", \
+                constant_pool_info->info.double_part->high_bytes, \
+                constant_pool_info->info.double_part->low_bytes);
+        break;
+    case CONSTANT_NameAndType:
+        printf("NameAndType        #%u:#%u\n", \
+                constant_pool_info->info.name_and_type_part->name_index, \
+                constant_pool_info->info.name_and_type_part->descriptor_index);
+        break;
+    case CONSTANT_Utf8:
+        printf("Utf8               ");
+        fwrite(constant_pool_info->info.utf8_part->bytes, \
+                constant_pool_info->info.utf8_part->length, \
+                1, \
+                stdout);
+        printf("\n");
+        break;
+    case CONSTANT_MethodHandle:
+        printf("MethodHandle       #%u.#%u\n", \
+                constant_pool_info->info.method_handle_part->reference_kind, \
+                constant_pool_info->info.method_handle_part->reference_index);
+        break;
+    case CONSTANT_MethodType:
+        printf("MethodType         #%u\n", \
+                constant_pool_info->info.method_type_part->descriptor_index);
+        break;
+    case CONSTANT_InvokeDynamic:
+        printf("InvokeDynamic      #%u.#%u\n", \
+                constant_pool_info->info.invoke_dynamic_part->bootstrap_method_attr_index, \
+                constant_pool_info->info.invoke_dynamic_part->name_and_type_index);
+        break;
+    default:
+        printf("\n");
+        break;
+  }
+  return 0;
+}
+
+
+int clsld_classfile_vervose_attribute_info_stack_map_frame_verification(
+  size_t indentation, 
+  cha_attribute_info_stack_map_frame_verification_t *attribute_info_stack_map_frame_verification)
+{
+  size_t i;
+  
+  for(i=0; i<indentation; i++) {printf(" ");}
+  
+  switch(attribute_info_stack_map_frame_verification->tag){
+    case ITEM_Top:
+      printf("ITEM_Top\n");
+      break;
+    case ITEM_Integer:
+      printf("ITEM_Integer\n");
+      break;
+    case ITEM_Float:
+      printf("ITEM_Float\n");
+      break;
+    case ITEM_Double:
+      printf("ITEM_Double\n");
+      break;
+    case ITEM_Long:
+      printf("ITEM_Long\n");
+      break;
+    case ITEM_Null:
+      printf("ITEM_Null\n");
+      break;
+    case ITEM_UninitializedThis:
+      printf("ITEM_UninitializedThis\n");
+      break;
+    case ITEM_Object:
+      printf(
+        "ITEM_Object #%u\n",
+        attribute_info_stack_map_frame_verification->info.object_variable_part.cpool_index);
+      break;
+    case ITEM_Uninitialized:
+      printf(
+        "ITEM_Uninitialized %u\n",
+        attribute_info_stack_map_frame_verification->info.uninitialized_variable_part.offset);
+      break;
+    case ITEM_Unknow:
+    default:
+      printf("ITEM_Unknow\n");
+      break;
+  }
+  
+  return 0;
+}
+
+
+int clsld_classfile_vervose_attribute_info_stack_map_frame(size_t indentation, 
+                                                           cha_attribute_info_stack_map_frame_t *attribute_info_stack_map_frame)
+{
+  size_t i;
+  u2 loop_num;
+  
+  u1 frame_type = attribute_info_stack_map_frame->frame_type;
+  if(/* FRAME_TYPE_SAME_Low <= frame_type ###always_true###  && */frame_type <= FRAME_TYPE_SAME_Height)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("SAME\n");
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("offset_delta: %u\n", frame_type);
+  }
+  else if(FRAME_TYPE_SAME_LOCALS_1_STACK_ITEM_Low <= frame_type &&
+    frame_type <= FRAME_TYPE_SAME_LOCALS_1_STACK_ITEM_Height)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("SAME_LOCALS_1_STACK_ITEM\n");
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("offset_delta: %u\n", frame_type-64);
+    
+    clsld_classfile_vervose_attribute_info_stack_map_frame_verification(
+      indentation,
+      attribute_info_stack_map_frame->info.same_locals_1_stack_item_frame_part.stack_1
+    );
+  }
+  else if(frame_type == FRAME_TYPE_SAME_LOCALS_1_STACK_ITEM_EXTENDED)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("SAME_LOCALS_1_STACK_ITEM_EXTENDED\n");
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf(
+      "offset_delta: %u\n",
+      attribute_info_stack_map_frame->info.same_locals_1_stack_item_frame_extended_part.offset_delta
+    );
+    
+    clsld_classfile_vervose_attribute_info_stack_map_frame_verification(
+      indentation,
+      attribute_info_stack_map_frame->info.same_locals_1_stack_item_frame_extended_part.stack_1
+    );
+  }
+  else if(FRAME_TYPE_CHOP_Low <= frame_type &&
+    frame_type <= FRAME_TYPE_CHOP_Height)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("CHOP[-%u]\n", 251-frame_type);
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf(
+      "offset_delta: %u\n",
+      attribute_info_stack_map_frame->info.chop_frame_part.offset_delta
+    );
+  }
+  else if(frame_type == FRAME_TYPE_SAME_FRAME_EXTENDED)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("SAME_FRAME_EXTENDED\n");
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf(
+      "offset_delta: %u\n",
+      attribute_info_stack_map_frame->info.same_frame_extended_part.offset_delta
+    );
+  }
+  else if(FRAME_TYPE_APPEND_Low <= frame_type &&
+    frame_type <= FRAME_TYPE_APPEND_Height)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("APPEND[%u]\n", frame_type-251);
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf(
+      "offset_delta: %u\n",
+      attribute_info_stack_map_frame->info.append_frame_part.offset_delta
+    );
+    
+    loop_num = (u2)(frame_type - 251);
+    for(i=0; i<loop_num; i++){
+      clsld_classfile_vervose_attribute_info_stack_map_frame_verification(
+        indentation,
+        &attribute_info_stack_map_frame->info.append_frame_part.locals[i]
+      );
+    }
+  }
+  else if(frame_type == FRAME_TYPE_FULL_FRAME)
+  {
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("FULL_FRAME\n");
+    
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf(
+      "offset_delta: %u\n",
+      attribute_info_stack_map_frame->info.full_frame_part.offset_delta
+    );
+    
+    loop_num = attribute_info_stack_map_frame->info.full_frame_part.number_of_locals;
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("locals[%u]:\n", loop_num);
+    
+    for(i=0; i<loop_num; i++){
+      clsld_classfile_vervose_attribute_info_stack_map_frame_verification(
+        indentation+2,
+        &attribute_info_stack_map_frame->info.full_frame_part.locals[i]
+      );
+    }
+    
+    loop_num = attribute_info_stack_map_frame->info.full_frame_part.number_of_stack_items;
+    for(i=0; i<indentation; i++) {printf(" ");}
+    printf("stack[%u]:\n", loop_num);
+    
+    for(i=0; i<loop_num; i++){
+      clsld_classfile_vervose_attribute_info_stack_map_frame_verification(
+        indentation+2,
+        &attribute_info_stack_map_frame->info.full_frame_part.stack[i]
+      );
+    }
+  }
+  else
+  {}
+  return 0;
+}
+
+int clsld_classfile_verbose_attribute_info(size_t indentation, cha_class_file_t *class_file, cha_attribute_info_t *attribute_info){
+  
+  cha_cp_info_t *cp_info = class_file->constant_pool;
+  u2 cp_index;
+  size_t i;
+  size_t p;
+  u4 code_length;
+  u2 table_length;
+  cha_attribute_info_t *attributes;
+  cha_attribute_info_code_exception_table_t *exception_table;
+  cha_attribute_info_stack_map_frame_t *stack_map_frame;
+  cha_attribute_info_line_number_t *line_number_table;
+  u2 *exception_index_table;
+  
+  for(i=0; i<indentation; i++) {printf(" ");}
+  cp_index = attribute_info->attributes_name_index;
+  fwrite(cp_info[cp_index-1].info.utf8_part->bytes, \
+        cp_info[cp_index-1].info.utf8_part->length, \
+        1, \
+        stdout);
+  printf(":\n");
+  indentation += 2;
+  
+  switch(attribute_info->attributes_type_)
+  {
+    case ATTRIBUTE_TYPE_ConstantValue:
+      cp_index = attribute_info->info.constantvalue_part->constantvalue_index;
+      clsld_classfile_verbose_cp_info(indentation, &cp_info[cp_index-1]);
+      break;
+      
+    case ATTRIBUTE_TYPE_Code:
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("max_stack: %u\n", attribute_info->info.code_part->max_stack);
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("max_locals: %u\n", attribute_info->info.code_part->max_locals);
+      
+      /* Code */
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("Code[%u]:\n", attribute_info->info.code_part->code_length);
+      for(i=0; i<attribute_info->info.code_part->code_length; i+=code_length)
+      {
+        clsld_classfile_verbose_instruction(
+          indentation+2,
+          &attribute_info->info.code_part->code[i],
+          &code_length
+        );
+      }
+      
+      /* Exception */
+      table_length = attribute_info->info.code_part->exception_table_length;
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("exception_table[%u]:\n", table_length);
+      
+      exception_table = attribute_info->info.code_part->exception_table;
+      for(p=0; p<table_length; p++)
+      {
+        for(i=0; i<indentation; i++) {printf(" ");}
+        printf("%u: start_pc:%u, end_pc:%u, handler_pc:%u \n", (uint)p, \
+                exception_table[p].start_pc, \
+                exception_table[p].end_pc, \
+                exception_table[p].handler_pc);
+        
+        for(i=0; i<indentation; i++) {printf(" ");}
+        printf("catch_type:\n");
+        cp_index = exception_table[p].catch_type;
+        clsld_classfile_verbose_cp_info(indentation+2, &cp_info[cp_index-1]);
+      }
+      
+      /* Attributes */
+      table_length = attribute_info->info.code_part->attributes_count;
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("attributes[%u]:\n", table_length);
+      
+      attributes = attribute_info->info.code_part->attributes;
+      for(p=0; p<table_length; p++)
+      {
+        clsld_classfile_verbose_attribute_info(indentation+2, class_file, &attributes[p]);
+      }
+      break;
+      
+    case ATTRIBUTE_TYPE_StackMapTable:
+      table_length = attribute_info->info.stack_map_table_part->number_of_entries;
+      stack_map_frame = attribute_info->info.stack_map_table_part->entries;
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("entries[%u]:\n", table_length);
+      for(p=0; p<table_length; p++)
+      {
+        for(i=0; i<indentation; i++) {printf(" ");}
+        clsld_classfile_vervose_attribute_info_stack_map_frame(
+          indentation+2,
+          &stack_map_frame[p]);
+      }
+      break;
+      
+    case ATTRIBUTE_TYPE_Exceptions:
+      table_length = attribute_info->info.exceptions_part->number_of_exceptions;
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("exception_index_table[%u]:\n", table_length);
+      
+      exception_index_table = attribute_info->info.exceptions_part->exception_index_table;
+      for(p=0; p<table_length; p++)
+      {
+        cp_index = exception_index_table[p];
+        clsld_classfile_verbose_cp_info(indentation+2, &cp_info[cp_index-1]);
+      }
+      break;
+      
+#if 0
+    case ATTRIBUTE_TYPE_InnerClasses:
+      ret = clsld_attribute_info_inner_classes(err, io, &(new_attribute_info[i].info.inner_classes_part));
+      break;
+    case ATTRIBUTE_TYPE_EnclosingMethod:
+      ret = clsld_attribute_info_enclosing_method(err, io, &(new_attribute_info[i].info.enclosing_method_part));
+      break;
+    case ATTRIBUTE_TYPE_Synthetic:
+      /* empty */
+      break;
+    case ATTRIBUTE_TYPE_Signature:
+      ret = clsld_attribute_info_signature(err, io, &(new_attribute_info[i].info.signature_part));
+      break;
+#endif
+    case ATTRIBUTE_TYPE_SourceFile:
+      cp_index = attribute_info->info.source_file_part->sourcefile_index;
+      clsld_classfile_verbose_cp_info(indentation, &cp_info[cp_index-1]);
+      break;
+      
+#if 0
+    case ATTRIBUTE_TYPE_SourceDebugExtension:
+      ret = clsld_attribute_info_source_debug_extension(
+        err, io, 
+        &(new_attribute_info[i].info.source_debug_extension_part),
+        new_attribute_info[i].attributes_length);
+      break;
+#endif
+    case ATTRIBUTE_TYPE_LineNumberTable:
+      table_length = attribute_info->info.line_number_table_part->line_number_table_length;
+      line_number_table = attribute_info->info.line_number_table_part->line_number_table;
+      
+      for(i=0; i<indentation; i++) {printf(" ");}
+      printf("line_number_table[%u]:\n", table_length);
+      
+      for(p=0; p<table_length; p++)
+      {
+        for(i=0; i<indentation; i++) {printf(" ");}
+        printf("start_pc: %u, line_number: %u\n",
+               line_number_table[p].start_pc,
+               line_number_table[p].line_number
+        );
+      }
+      
+      break;
+      
+#if 0
+    case ATTRIBUTE_TYPE_LocalVariableTable:
+      ret = clsld_attribute_info_local_variable_table(
+        err, io, &(new_attribute_info[i].info.local_variable_table_part));
+      break;
+    case ATTRIBUTE_TYPE_LocalVariableTypeTable:
+      ret = clsld_attribute_info_local_variable_type_table(
+        err, io, &(new_attribute_info[i].info.local_variable_type_table_part));
+      break;
+    case ATTRIBUTE_TYPE_Deprecated:
+      /* empty */
+      break;
+    case ATTRIBUTE_TYPE_RuntimeVisibleAnnotations:
+      ret = clsld_attribute_info_runtime_visible_annotations(
+        err, io, &(new_attribute_info[i].info.runtime_visible_annotations_part));
+      break;
+    case ATTRIBUTE_TYPE_RuntimeInvisibleAnnotations:
+      ret = clsld_attribute_info_runtime_invisible_annotations(
+        err, io, &(new_attribute_info[i].info.runtime_invisible_annotations_part));
+      break;
+    case ATTRIBUTE_TYPE_RuntimeVisibleParameterAnnotations:
+      ret = clsld_attribute_info_runtime_visible_parameter_annotations(
+        err, io, &(new_attribute_info[i].info.runtime_visible_parameter_annotations_part));
+      break;
+    case ATTRIBUTE_TYPE_RuntimeInisibleParameterAnnotations:
+      ret = clsld_attribute_info_runtime_invisible_parameter_annotations(
+        err, io, &(new_attribute_info[i].info.runtime_invisible_parameter_annotations_part));
+      break;
+    case ATTRIBUTE_TYPE_AnnotationDefault:
+      ret = clsld_attribute_info_annotation_default(
+        err, io, &(new_attribute_info[i].info.annotation_default_part));
+      break;
+    case ATTRIBUTE_TYPE_BootstrapMethods:
+      ret = clsld_attribute_info_bootstrap_methods(
+        err, io, &(new_attribute_info[i].info.bootstrap_methods_part));
+      break;
+    default:
+      /* undefined attributes */
+      /* ignore */
+      io->ptr_cur += new_attribute_info[i].attributes_length;
+#endif
+  }
   return 0;
 }
